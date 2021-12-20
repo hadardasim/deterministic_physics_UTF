@@ -42,7 +42,7 @@ public class PhysicsTest
             };
             states.Add(state);
         }
-
+        Debug.Log($"First object position {states[0].position.ToString("G17")}");
     }
 
     List<PhysicsState> initialStates;
@@ -57,6 +57,17 @@ public class PhysicsTest
     [UnityTest]
     public IEnumerator PhysicsTestDeterminism()
     {        
-        yield return Run();
+        for (int numRuns=0; numRuns<4; ++numRuns)
+        {
+            yield return Run();
+            for (int obj=0; obj< states.Count; ++obj)
+            {
+                Assert.AreEqual(initialStates[obj].position, states[obj].position, $"Compare position failed on run {numRuns}, object {obj}");
+                Assert.AreEqual(initialStates[obj].rotation, states[obj].rotation, $"Compare rotation failed on run {numRuns}, object {obj}");
+            }
+            
+        }
+        
+        
     }
 }
