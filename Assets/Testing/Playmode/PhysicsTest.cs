@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.SceneManagement;
 
 public class PhysicsTest
 {
@@ -14,26 +15,33 @@ public class PhysicsTest
         public Vector3 position;
         public Quaternion rotation;
     };
-    void CreateObjects()
+
+    // create dynamic objects we want to track
+    void CreateObjects(GameObject parent)
     {
-        objects.Clear();
-        // create dynamic objects
+        objects.Clear();        
         for (int n=0; n<10;++n)
         {
             var go = GameObject.CreatePrimitive(n % 2 == 0 ? PrimitiveType.Cube : PrimitiveType.Sphere);
             go.AddComponent<Rigidbody>();
+            go.transform.parent = parent.transform;
             go.transform.position = new Vector3(n * 0.5f, n * 1.5f, 0.0f);
             objects.Add(go);
-        }
-        // create floor collider
-        var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        plane.transform.position = new Vector3(0, -2, 0);
-        objects.Add(plane);
+        }                
     }
 
     IEnumerator Run()
     {
-        CreateObjects();
+        var newScene = SceneManager.CreateScene("PhysicsScene", new CreateSceneParameters(LocalPhysicsMode.Physics3D));
+        SceneManager.SetActiveScene(newScene);
+
+        // create (stationary) floor collider
+        var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        plane.transform.position = new Vector3(0, -2, 0);
+        // add physics stepper since physics scene with LocalPhysicsMode.Physics3D require manual simulate call
+        plane.AddComponent<PhysicsStepper>();
+
+        CreateObjects(plane);
         for (int n = 0; n < 100; ++n)
             yield return null;
         states = new List<PhysicsState>();
@@ -48,6 +56,10 @@ public class PhysicsTest
             states.Add(state);
         }
         Debug.Log($"First object position {states[0].position.ToString("G17")}");
+
+        var op = SceneManager.UnloadSceneAsync(newScene);
+        while (!op.isDone)
+            yield return null;
     }
 
     [OneTimeSetUp]
