@@ -17,6 +17,7 @@ public class PhysicsTest
     void CreateObjects()
     {
         objects.Clear();
+        // create dynamic objects
         for (int n=0; n<10;++n)
         {
             var go = GameObject.CreatePrimitive(n % 2 == 0 ? PrimitiveType.Cube : PrimitiveType.Sphere);
@@ -24,6 +25,10 @@ public class PhysicsTest
             go.transform.position = new Vector3(n * 0.5f, n * 1.5f, 0.0f);
             objects.Add(go);
         }
+        // create floor collider
+        var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        plane.transform.position = new Vector3(0, -2, 0);
+        objects.Add(plane);
     }
 
     IEnumerator Run()
@@ -45,6 +50,18 @@ public class PhysicsTest
         Debug.Log($"First object position {states[0].position.ToString("G17")}");
     }
 
+    [OneTimeSetUp]
+    public void OneTimeSetUp()
+    {
+        Time.captureDeltaTime = 2 * Time.fixedDeltaTime;
+    }
+
+    [OneTimeTearDown]
+    public void OneTimeTearDown()
+    {
+        Time.captureDeltaTime = 0;
+    }
+
     List<PhysicsState> initialStates;
     [UnitySetUp]
     public IEnumerator Setup()
@@ -64,10 +81,7 @@ public class PhysicsTest
             {
                 Assert.AreEqual(initialStates[obj].position, states[obj].position, $"Compare position failed on run {numRuns}, object {obj}");
                 Assert.AreEqual(initialStates[obj].rotation, states[obj].rotation, $"Compare rotation failed on run {numRuns}, object {obj}");
-            }
-            
-        }
-        
-        
+            }            
+        }                
     }
 }
