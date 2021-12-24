@@ -35,9 +35,13 @@ public class PhysicsTest
         var newScene = SceneManager.CreateScene("PhysicsScene", new CreateSceneParameters(LocalPhysicsMode.Physics3D));
         SceneManager.SetActiveScene(newScene);
 
+        var prefab = Resources.Load<GameObject>("Prefabs/Environment");
+        var env = GameObject.Instantiate(prefab);
+
         // create (stationary) floor collider
         var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
         plane.transform.position = new Vector3(0, -2, 0);
+
         // add physics stepper since physics scene with LocalPhysicsMode.Physics3D require manual simulate call
         plane.AddComponent<PhysicsStepper>();
 
