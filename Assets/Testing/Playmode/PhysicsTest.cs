@@ -51,7 +51,6 @@ public class PhysicsTest
         states = new List<PhysicsState>();
         foreach (var go in objects)
         {
-            GameObject.Destroy(go);
             var state = new PhysicsState
             {
                 position = go.transform.position,
