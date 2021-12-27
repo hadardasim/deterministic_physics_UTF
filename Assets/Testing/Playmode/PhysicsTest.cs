@@ -30,10 +30,11 @@ public class PhysicsTest
         }                
     }
 
+    Scene localScene;
     IEnumerator Run()
     {
-        var newScene = SceneManager.CreateScene("PhysicsScene", new CreateSceneParameters(LocalPhysicsMode.Physics3D));
-        SceneManager.SetActiveScene(newScene);
+        localScene = SceneManager.CreateScene("PhysicsScene", new CreateSceneParameters(LocalPhysicsMode.Physics3D));
+        SceneManager.SetActiveScene(localScene);
 
         var prefab = Resources.Load<GameObject>("Prefabs/Environment");
         var env = GameObject.Instantiate(prefab);
@@ -60,9 +61,7 @@ public class PhysicsTest
         }
         Debug.Log($"First object position {states[0].position.ToString("G17")}");
 
-        var op = SceneManager.UnloadSceneAsync(newScene);
-        while (!op.isDone)
-            yield return null;
+        yield return UnloadScene();
     }
 
     [OneTimeSetUp]
@@ -83,6 +82,23 @@ public class PhysicsTest
     {
         yield return Run();
         initialStates = states;
+    }
+
+    IEnumerator UnloadScene()
+    {
+        if (localScene.isLoaded)
+        {
+            var op = SceneManager.UnloadSceneAsync(localScene);
+            while (!op.isDone)
+                yield return null;
+        }
+    }
+
+    [UnityTearDown]
+    public IEnumerator TearDown()
+    {
+        // in case of error during the test, the scene may remain loaded
+        yield return UnloadScene();
     }
 
 
